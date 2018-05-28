@@ -11,7 +11,7 @@ os.chdir("C:\\Users\\gah02\\Documents\\new segmented files\\csv files")
  
    
 
-file = "58060_disc_4_9OW3HM.csv";
+file = "58060_disc_3_0687TE.csv";
 
 # import the needed libraries
 from mpl_toolkits.mplot3d import Axes3D
@@ -69,7 +69,7 @@ for e in data:
     if e[4] > 3000:
         if e[4] < 18783:
             if e[2] < 600:
-                if e[10] > 18:
+                if e[10] > 14:
                     #if e[10] < 26:
                         xmf.append(e[1]/diameter) 
                         ymf.append(e[2]/diameter) 
@@ -84,6 +84,7 @@ yA = []
 zA = []
 aA = []
 tA = []
+vA = []
 
 #for every element(e) in data (for loop)
 for e in data:
@@ -95,8 +96,9 @@ for e in data:
             zA.append(e[3]/diameter)
             aA.append(e[10]/diameter)
             tA.append(e[8]/diameter)
-         
-     
+            vA.append(e[4]/diameter)
+ 
+    
         
 
 
@@ -112,12 +114,14 @@ plt.figure(figsize=(20,10))
 ax = plt.subplot(1,1,1)
 
 #Finding the MF (after you find the MF and detect the line, then comment out the next 3 lines)
-#ax.scatter(xmf,ymf,alpha=1,s=30,c=amf,\
-#norm=colors.SymLogNorm(linthresh=0.03,linscale=0.03,vmin=min(amf),vmax=max(amf)),cmap='Reds')
 
-#ax.plot(xp, line(xp))
+ax.scatter(xmf,ymf,alpha=1,s=30,c=amf,\
+norm=colors.SymLogNorm(linthresh=0.03,linscale=0.03,vmin=min(amf),vmax=max(amf)),cmap='Reds')
 
-#ax.axis('scaled')
+
+
+ax.axis('scaled')
+ax.plot(xp, line(xp))
 
 #ax.scatter(xA,yA,alpha=1,s=30,c=aA,\
 #norm=colors.SymLogNorm(linthresh=0.03,linscale=0.03,vmin=min(aA),vmax=max(aA)),cmap='Reds')
@@ -139,12 +143,6 @@ ax.axis('scaled')
 #ax2.axis('scaled')
 #ax.set_xlabel('atonal',fontsize=20)
 
-MF = (xp, line(xp))
-MFx = MF[0] * diameter 
-MFy = MF[1] * diameter   
-
-
-          
           
 
 import math
@@ -211,6 +209,26 @@ for m,f,k in zip(position,p1, distance): #loop over both simultaneously
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.colors as colors 
+
+
+
+#Peramaeters for normalizing ato:
+matrix = [[i,j,k,l,m,n] for i,j,k,l,m,n in zip(xA,yA,a,t,vA,distance)]
+
+lineT = 18/diameter
+atoNORM = []
+for e in matrix:
+    if e[5] < lineT:
+        atoNORM.append(e[2])
+        
+norm = np.mean(atoNORM)
+maxA = max(atoNORM)   
+
+newT = [(float(i)/maxA) * 100 for i in t] 
+
+ 
+
+
         
 plt.figure(figsize=(20,10))
 distplot = plt.subplot(1,1,1)
@@ -220,21 +238,59 @@ cax = divider.append_axes('right',size='5%',pad=0.05)
 #ax.scatter(x,y,alpha=0.8,s=25,c=a,cmap='Reds')
 #distplot.scatter(distance,t,alpha=1,s=35,c=t,cmap='Blues')
 #distplot.scatter(distance,t,alpha=0.5,s=35,c='blue')
-plot = distplot.scatter(sign,t,alpha=1,s=15,c=t,\
-norm=colors.SymLogNorm(linthresh=0.03,linscale=0.03,vmin=min(t),vmax=max(t)),cmap='Blues')
+plot = distplot.scatter(sign,newT,alpha=1,s=15,c=newT,\
+norm=colors.SymLogNorm(linthresh=0.03,linscale=0.03,vmin=min(newT),vmax=max(newT)),cmap='Blues')
 #ax.scatter(xmf,ymf,alpha=0.5,s=35,c=amf,cmap='Reds')
 #ax.plot(xp, line(xp))  #x and y need to have same resolution
 plt.colorbar(plot,cax=cax)  
 
-distplot.plot([0,0], [0,round(max(t))]) 
+
+distplot.plot([0,0], [0,math.ceil(max(newT))]) 
+#distplot.plot([signMIN,signMAX], [15,15])
 
 signMAX = math.ceil(max(sign))
 signMIN = math.floor(min(sign))
-fit2 = np.polyfit(sign, t, 6)  #last number is equal to degree of fitting 
+fit2 = np.polyfit(sign, newT, 6)  #last number is equal to degree of fitting, usually use 6 
 line2 = np.poly1d(fit2)
 xp5 = np.linspace(int(signMIN), int(signMAX), int(maxX))
 
 distplot.plot(xp5, line2(xp5))
+
+
+#Fix the positions of the auto titles! This currently does not work
+distplot.set_title ('TG Expression Across Disc', fontsize = 14)
+distplot.set_xlabel ('Distance From MF', fontsize = 12)
+distplot.set_ylabel ('Relative TG Expression to Max Ato in MF (%)', fontsize = 12)
+plt.tight_layout()
+
+
+#save the fitting and the min and max produced from fitting
+saving = [[min(sign)],[max(sign)],fit2.tolist()]
+os.chdir("C:\\Users\\gah02\\Documents\\UPMC\\Master's Thesis\\Saving")
+arr = np.array(saving)
+np.save('LINE'+str(file)+'.npy',arr)
+
+
+#Create and save a quality graph
+os.chirdiros.chdir("C:\\Users\\gah02\\Documents\\UPMC\\Master's Thesis\\Quality Graphs")
+plt.savefig("PLOT.png", dpi=200)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Save line coordinates as a npy file in the correct folder
@@ -244,7 +300,8 @@ arr = np.array(lineE)
 np.save('LINE'+str(file)+'.npy',arr)
 
 
-
+     
+        
 
 #Fix the positions of the auto titles! This currently does not work
 plt.title ('TG Expression Across Disc', fontsize = 14)
